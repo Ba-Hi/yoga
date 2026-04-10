@@ -116,13 +116,20 @@ function useAmbientSound() {
 
   const startSound = useCallback((type: SoundType) => {
     if (!type) return
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
-      if (!ctxRef.current || ctxRef.current.state === "closed") {
-        ctxRef.current = new AudioCtx()
-      }
-      const ctx = ctxRef.current
-      if (ctx.state === "suspended") ctx.resume()
+      try {
+        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+        
+        // Initialisation forcée sur interaction
+        if (!ctxRef.current || ctxRef.current.state === "closed") {
+          ctxRef.current = new AudioCtx()
+        }
+        
+        const ctx = ctxRef.current
+        
+        // TRÈS IMPORTANT : Reprendre le contexte si suspendu par le navigateur
+        if (ctx.state === "suspended") {
+          ctx.resume() 
+        }
 
       const masterGain = ctx.createGain()
       masterGain.gain.setValueAtTime(0, ctx.currentTime)
@@ -212,9 +219,10 @@ function useAmbientSound() {
 
       nodesRef.current = { gain: masterGain, sources }
       setActive(type)
-    } catch {
-      setAudioSupported(false)
-    }
+    } catch (e) {
+    console.error("Audio error:", e)
+    setAudioSupported(false)
+  }
   }, [])
 
   const setVolume = useCallback((v: number) => {
@@ -513,15 +521,10 @@ function AmbientPlayer({ ambient }: { ambient: ReturnType<typeof useAmbientSound
             : "bg-background/80 backdrop-blur border-border hover:border-primary/50"
         )}
       >
-        <Music className="w-4 h-4" />
-        <span className="hidden sm:inline">{ambient.active ? sounds.find(s => s.id === ambient.active)?.label ?? "Ambiance" : "Ambiance"}</span>
-        {ambient.active && (
-          <span className="flex gap-0.5 items-end h-3">
-            {[0, 1, 2].map(i => (
-              <span key={i} className="w-1 bg-current rounded-full animate-bounce" style={{ height: `${6 + i * 3}px`, animationDelay: `${i * 0.15}s`, animationDuration: "0.8s" }} />
-            ))}
-          </span>
-        )}
+        {/* L'icône change si actif */}
+        {ambient.active ? <Volume2 className="w-4 h-4" /> : <Music className="w-4 h-4" />}
+        <span>{ambient.active ? "En lecture" : "Ambiance"}</span>
+
       </button>
 
       <AnimatePresence>
@@ -530,8 +533,8 @@ function AmbientPlayer({ ambient }: { ambient: ReturnType<typeof useAmbientSound
             initial={{ opacity: 0, y: -8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            className="absolute right-0 top-full mt-2 w-56 bg-background/95 backdrop-blur-xl border border-border rounded-2xl shadow-xl p-3 z-50"
-          >
+            className="absolute right-0 top-full mt-2 w-64 bg-background/98 backdrop-blur-2xl border border-border rounded-2xl shadow-2xl p-4 z-[100]"          
+            >
             <p className="text-xs font-medium text-muted-foreground mb-2 px-1">Sons d'ambiance</p>
             <div className="space-y-1">
               {sounds.map(s => (
