@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ArrowLeft, Heart, CheckCircle2, Headphones,
-  Play, Pause, RotateCcw, ChevronRight, Sun, Home, Sparkles
+  Play, Pause, RotateCcw, ChevronRight, Sun, Home as HomeIcon, Sparkles
 } from "lucide-react"
 import { EXERCISE_DATA, type ExerciseOption } from "@/lib/data"
 import { Button } from "@/components/ui/button"
@@ -291,7 +291,7 @@ function DailyPoseCard({ pose, onClick }: any) {
 
 function BottomNav({ view, setView }: any) {
   const tabs = [
-    { id: "home", label: "Accueil", icon: Home },
+    { id: "home", label: "Accueil", icon: HomeIcon },
     { id: "posture", label: "Posture", icon: Sun },
     { id: "8d", label: "Audio 8D", icon: Headphones },
   ]
